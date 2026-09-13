@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大模型入门 · 从看懂 SPOTLITE 的视频开始</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <button id="menu-btn" class="icon-btn" aria-label="目录">☰</button>
+  <a class="brand" href="#/">大模型入门</a>
+  <span id="crumb" class="crumb"></span>
+  <button id="theme-btn" class="icon-btn" aria-label="切换主题">◐</button>
+</header>
+
+<div id="file-warn" class="file-warn" hidden>
+  检测到直接以 file:// 打开，浏览器会拦截章节加载。请在本目录运行
+  <code>python3 -m http.server 8000</code> 后访问 <code>http://localhost:8000</code>。
+</div>
+
+<nav id="toc" class="toc-drawer" hidden></nav>
+<div id="toc-mask" class="toc-mask" hidden></div>
+
+<main id="content" class="content">
+  <p class="muted">加载中…</p>
+</main>
+
+<footer class="pager" id="pager"></footer>
+
+<script src="assets/md.js"></script>
+<script src="assets/books.js"></script>
+<script src="assets/demos.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

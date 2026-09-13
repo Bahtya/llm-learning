@@ -1,0 +1,14 @@
+# 凭证与私有数据（绝不入库）
+*cookie*
+videos/cookie.txt
+
+# 视频本体（体积大，重新可用 download.sh 拉取）
+videos/*.mp4
+videos/*.mkv
+videos/archive.txt
+
+# 运行时产物
+server.log
+__pycache__/
+*.pyc
+.DS_Store
