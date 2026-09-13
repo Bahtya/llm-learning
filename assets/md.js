@@ -42,13 +42,23 @@
       // 动画/插画占位：原样透传
       if (/^\s*<div class="(demo|ill)"/.test(line)) { out.push(line.trim()); i++; continue; }
 
-      // 代码块
+      // 代码块 / 公式块
       if (/^```/.test(line)) {
         var buf = [], lang = line.slice(3).trim();
         i++;
         while (i < lines.length && !/^```/.test(lines[i])) { buf.push(lines[i]); i++; }
         i++;
-        out.push('<pre><code>' + esc(buf.join("\n")) + "</code></pre>");
+        if (lang === "formula") {
+          var rows = buf.map(function (l) {
+            var s = esc(l);
+            s = s.replace(/\^\{([^}]+)\}/g, "<sup>$1</sup>").replace(/\^([0-9A-Za-z一-鿿]{1,6})/g, "<sup>$1</sup>");
+            s = s.replace(/_\{([^}]+)\}/g, "<sub>$1</sub>");
+            return s;
+          });
+          out.push('<div class="formula">' + rows.join("\n") + "</div>");
+        } else {
+          out.push('<pre><code>' + esc(buf.join("\n")) + "</code></pre>");
+        }
         continue;
       }
 

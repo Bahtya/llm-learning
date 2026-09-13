@@ -71,6 +71,17 @@ a { color: var(--accent); }
 code { background: var(--code-bg); padding: .1em .35em; border-radius: 5px; font-size: .92em; }
 pre { background: var(--code-bg); padding: .8em 1em; border-radius: 10px; overflow-x: auto; }
 pre code { background: none; padding: 0; }
+
+/* 公式块 */
+.formula {
+  margin: 1.4em 0; padding: .9em 1.3em; background: var(--code-bg);
+  border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0;
+  font-size: 1.12em; line-height: 2.1; letter-spacing: .03em;
+  overflow-x: auto; white-space: pre; font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.formula sup, .formula sub { font-size: .72em; }
+.formula strong { color: var(--accent); }
 blockquote {
   margin: 1.2em 0; padding: .7em 1em; border-left: 4px solid var(--accent);
   background: var(--accent-soft); border-radius: 0 10px 10px 0;
