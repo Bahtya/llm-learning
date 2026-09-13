@@ -39,8 +39,8 @@
     while (i < lines.length) {
       var line = lines[i];
 
-      // 动画占位：原样透传
-      if (/^\s*<div class="demo"/.test(line)) { out.push(line.trim()); i++; continue; }
+      // 动画/插画占位：原样透传
+      if (/^\s*<div class="(demo|ill)"/.test(line)) { out.push(line.trim()); i++; continue; }
 
       // 代码块
       if (/^```/.test(line)) {
@@ -101,7 +101,7 @@
       // 段落
       var para = [];
       while (i < lines.length && lines[i].trim() &&
-             !/^(#{1,4}\s|```|\s*>|\s*[-*]\s|\s*\d+\.\s|<div class="demo")/.test(lines[i]) &&
+             !/^(#{1,4}\s|```|\s*>|\s*[-*]\s|\s*\d+\.\s|<div class="(demo|ill)")/.test(lines[i]) &&
              !(lines[i].indexOf("|") >= 0 && isTableSep(lines[i + 1] || ""))) {
         para.push(lines[i]); i++;
       }
