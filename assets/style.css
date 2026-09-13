@@ -118,3 +118,10 @@ tr:nth-child(even) td { background: color-mix(in srgb, var(--code-bg) 40%, trans
 
 /* BV 号链接 */
 a.bili { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); white-space: nowrap; }
+
+/* 插画卡 */
+.ill {
+  margin: 1.6em 0; padding: 1em .6em; background: var(--paper);
+  border: 1px solid var(--line); border-radius: 12px;
+}
+.ill svg { width: 100%; height: auto; display: block; }

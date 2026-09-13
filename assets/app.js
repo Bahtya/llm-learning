@@ -42,7 +42,7 @@
   function linkBvids(html) {
     return html.replace(/视频出处：(BV[0-9A-Za-z]{10})|(BV[0-9A-Za-z]{10})/g, function (m, cited, plain) {
       var id = cited || plain;
-      var meta = window.VIDEOS && window.VIDEOS[id];
+      var meta = typeof VIDEOS === "object" ? VIDEOS[id] : undefined; // books.js 顶层 const，裸用词法绑定（勿写 window.VIDEOS）
       if (!meta) return m;
       var href = "https://www.bilibili.com/video/" + id;
       if (cited) return '视频出处：<a class="bili" href="' + href + '" target="_blank" rel="noopener">' + id + "《" + meta.t + "》▶</a>";
@@ -119,6 +119,10 @@
         content.querySelectorAll("[data-demo]").forEach(function (el) {
           var fn = window.DEMOS && window.DEMOS[el.dataset.demo];
           if (fn) { try { fn(el); } catch (e) { el.innerHTML = '<p class="muted">动画加载失败：' + e.message + "</p>"; } }
+        });
+        content.querySelectorAll("[data-ill]").forEach(function (el) {
+          var fn = window.ILLS && window.ILLS[el.dataset.ill];
+          if (fn) { try { fn(el); } catch (e) { el.innerHTML = '<p class="muted">插画加载失败：' + e.message + "</p>"; } }
         });
         renderPager(hit.book, hit.idx);
         renderToc();
