@@ -1,4 +1,11 @@
 /* 大模型入门书籍样式：phone-first，亮暗双主题 */
+/* 自托管开源字体：Noto Sans SC（思源黑体，SIL OFL）可变字重，按全书字符集子集化 */
+@font-face {
+  font-family: "Noto Sans SC Book";
+  src: url("fonts/NotoSansSC-book.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
 :root {
   --bg: #faf9f6; --paper: #ffffff; --ink: #1f2328; --dim: #6a7180;
   --accent: #0f6b5c; --accent-soft: #e3f1ee; --line: #e4e2dc;
@@ -12,7 +19,7 @@
 * { box-sizing: border-box; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
-  font-family: system-ui, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  font-family: "Noto Sans SC Book", system-ui, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
   line-height: 1.75; font-size: 16px;
 }
 

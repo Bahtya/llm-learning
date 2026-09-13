@@ -106,7 +106,7 @@
     function draw() {
       var ctx = host.ctx, W = host.w, H = host.h;
       ctx.clearRect(0, 0, W, H);
-      ctx.font = "14px system-ui";
+      ctx.font = "15px \"Noto Sans SC Book\", system-ui";
       var toks = tokenize(vals.text);
       var x = 8, y = 30, maxW = W - 16;
       toks.forEach(function (t, i) {
@@ -146,7 +146,7 @@
     function draw() {
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       var cell = Math.min(34, (w - 90) / toks.length);
       var x0 = 90, y0 = 16;
       for (var r = 0; r < toks.length; r++) {
@@ -205,7 +205,7 @@
         var bh = ps[i] * (h - 70);
         ctx.fillStyle = host.css("--accent");
         ctx.fillRect(20 + i * bw + 6, h - 40 - bh, bw - 20, bh);
-        ctx.font = "13px system-ui";
+        ctx.font = "14px \"Noto Sans SC Book\", system-ui";
         inkFill(ctx, 20 + i * bw + 6, h - 24, c[0], host.css("--ink"));
         inkFill(ctx, 20 + i * bw + 6, h - 8, (ps[i] * 100).toFixed(0) + "%", host.css("--dim"));
       });
@@ -240,12 +240,12 @@
         ctx.fillStyle = i < filled ? host.css("--accent") : host.css("--line");
         ctx.fillRect(20 + i * cell, 26, cell - 2, cell - 2);
       }
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 20, 16, "KV 缓存随生成逐步增长（示意 " + Math.round(pos % tokens) + " / " + vals.ctxk + "K token）", host.css("--dim"));
       inkFill(ctx, 20, 70, "公式：全注意力层 " + vals.layers + " × KV头 " + vals.kvheads + " × 维度 " + vals.dim + " × 2 × " + vals.ctxk + "K × " + vals.bytes + "B", host.css("--ink"));
-      ctx.font = "bold 22px system-ui";
+      ctx.font = "bold 22px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 20, 104, "≈ " + gb.toFixed(1) + " GB", host.css("--accent"));
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 150, 104, "← 这只是 KV；权重另算（GiB 口径，见 v2/01）", host.css("--dim"));
       inkFill(ctx, 20, 126, "把全注意力层拖到 64 = naive 算法 64G；千问 27B 实际只有 16 层全注意力（Layer type 翻案）", host.css("--dim"));
     }
@@ -264,7 +264,7 @@
       var el2 = t - t0;
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       var phaseDur = 1800;
       var p = (el2 % 5400);
       var plen = vals.plen;
@@ -308,7 +308,7 @@
         ctx.fillRect(x - 2, y - 10, 4, 20);
       }
       // 真实值采样点（连续分布）与其量化误差
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       for (var k = 0; k < 24; k++) {
         var v = (Math.sin(k * 12.9898) + 1) / 2; // ponytail: 伪随机即可
         var q = Math.round(v * (levels - 1)) / (levels - 1);
@@ -343,7 +343,7 @@
       var activeSet = [];
       var seed = Math.floor(t / 1400);
       for (var i = 0; i < na; i++) activeSet.push((seed * 7 + i * 3) % ne); // ponytail: 示意路由
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 20, 20, "token → 路由器 → 只激活 " + na + "/" + ne + " 个专家", host.css("--ink"));
       ctx.fillStyle = host.css("--ink");
       ctx.beginPath(); ctx.arc(tx, ty, 8, 0, 7); ctx.fill();
@@ -372,7 +372,7 @@
     function draw() {
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       var colors = ["#0f6b5c", "#b8860b", "#7c5cbf"];
       var page = 34;
       // 物理页
@@ -413,7 +413,7 @@
       var dt = 1 / 60;
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 20, 20, vals.mode ? "连续批处理：做完即退、随时补位" : "静态批次：必须等整批完成", host.css("--ink"));
       slots.forEach(function (s, i) {
         slots[i] += dt * (0.25 + waits[i] * 0.2);
@@ -442,7 +442,7 @@
       if (t0 === null) t0 = t;
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       var x = 20, y = 50;
       var k = 0, tmod = (t / 3) % 600;
       inkFill(ctx, 20, 24, vals.mode ? "整图回放：CPU 一次指派，GPU 连续执行" : "逐个发射：CPU→GPU 一来一回，空隙=浪费", host.css("--ink"));
@@ -476,7 +476,7 @@
       if (t0 === null) t0 = t;
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       var y1 = 40, y2 = 120;
       // 主赛道：固定速度
       ctx.fillStyle = host.css("--dim");
@@ -504,7 +504,7 @@
     function draw() {
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       var layers = 6;
       if (!vals.mode) {
         inkFill(ctx, 20, 22, "TP=2：每层都切开，两卡同步算（每层一次 all-reduce ✱）", host.css("--ink"));
@@ -549,7 +549,7 @@
       var nvlink = 100;     // NVLink 2 双向≈100 GB/s（与正文 v4/07 口径一致）
       function bar(label, gbps, y, color) {
         var time = bytes / (gbps * 1e9) * 1000; // ms
-        ctx.font = "13px system-ui";
+        ctx.font = "14px \"Noto Sans SC Book\", system-ui";
         ctx.fillStyle = color;
         ctx.fillRect(150, y, Math.min(w - 220, Math.log2(1 + time * 8) * 30), 20);
         ctx.fillStyle = host.css("--ink");
@@ -584,7 +584,7 @@
       var x0 = 50, y0 = h - 40, pw = w - 90, ph = h - 80;
       ctx.strokeStyle = host.css("--dim");
       ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, 20); ctx.moveTo(x0, y0); ctx.lineTo(x0 + pw, y0); ctx.stroke();
-      ctx.font = "12px system-ui";
+      ctx.font = "13px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, x0 - 44, 30, "性能", host.css("--dim"));
       inkFill(ctx, x0 + pw - 60, y0 + 18, "算术强度(对数)", host.css("--dim"));
       // 屋顶线
@@ -636,11 +636,11 @@
         var bw2 = bytes * scale;
         ctx.fillStyle = color;
         ctx.fillRect(x, y, bw2, 34);
-        ctx.fillStyle = "#fff"; ctx.font = "12px system-ui";
+        ctx.fillStyle = "#fff"; ctx.font = "13px \"Noto Sans SC Book\", system-ui";
         if (bw2 > 55) ctx.fillText(label + " " + bytes.toFixed(1) + "G", x + 5, y + 21);
         x += bw2;
       }
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 60, 30, "双 2080Ti 22G：装得下吗？", host.css("--ink"));
       seg(weights, "#0f6b5c", "权重");
       seg(kv, "#b8860b", "KV");
@@ -652,9 +652,9 @@
       inkFill(ctx, vx - 40, y + 66, "44G 显存线", "#c25b4e");
       ctx.lineWidth = 1;
       var ok = total <= vram;
-      ctx.font = "bold 16px system-ui";
+      ctx.font = "bold 16px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 60, y + 100, "合计 " + total.toFixed(1) + "G / 44G —— " + (ok ? "装得下" + (vram - total > 2 ? "，还留得足计算缓冲" : "，勉强") : "装不下！OOM"), ok ? host.css("--accent") : "#c25b4e");
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       inkFill(ctx, 60, y + 122, "试试把 KV 位宽开到 16 并拉高并发/参数量 —— 看 44G 怎么被吃穿", host.css("--dim"));
     }
     host.onresize = draw;
@@ -671,7 +671,7 @@
       if (t0 === null) t0 = t;
       var ctx = host.ctx, w = host.w, h = host.h;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = "13px system-ui";
+      ctx.font = "14px \"Noto Sans SC Book\", system-ui";
       if (!vals.mode) {
         inkFill(ctx, 20, 22, "独显方案：显存 24G 装不下 → 每次激活专家都要经 PCIe 窄桥搬运", host.css("--ink"));
         ctx.fillStyle = host.css("--line"); ctx.fillRect(20, 40, 110, 120);
