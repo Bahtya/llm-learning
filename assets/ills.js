@@ -868,16 +868,17 @@
     var bar = document.createElement("div");
     bar.className = "demo-controls";
     var btns = [];
+    var btnCss = "padding:.25em .7em;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;font-size:.85rem;";
     PHASES.forEach(function (ph, i) {
       var b = document.createElement("button");
       b.textContent = ph.btn;
-      b.style.cssText = "padding:.25em .7em;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;font-size:.85rem;";
+      b.style.cssText = btnCss;
       b.onclick = function () { phase = i; beat = 0; last = null; paused = false; finished = false; syncBtns(); };
       bar.appendChild(b); btns.push(b);
     });
     var replay = document.createElement("button");
     replay.textContent = "↻ 从头播放";
-    replay.style.cssText = b.style.cssText;
+    replay.style.cssText = btnCss;
     replay.onclick = function () { phase = 0; beat = 0; last = null; paused = false; finished = false; syncBtns(); };
     bar.appendChild(replay);
     el.appendChild(bar);
