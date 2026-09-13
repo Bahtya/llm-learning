@@ -2,7 +2,11 @@
 
 把 B 站 UP 主 [SPOTLITE](https://space.bilibili.com/192062329) 的 22 个本地大模型推理视频里出现的**每一个概念**从零讲懂的成套入门书（纯静态前端，无构建工具），配套 16 个交互动画。
 
-## 阅读
+## 📖 在线阅读
+
+**https://llm-learning.pages.dev**
+
+## 本地运行
 
 ```sh
 python3 -m http.server 8000
@@ -38,6 +42,15 @@ videos/    字幕存档（ai-zh）与下载脚本；视频本体不入库
 ## 制作方法
 
 Pipeline：yt-dlp 拉取字幕 → 22 个并行 agent 逐视频精读（术语穷举/论断/知识点）→ 汇总知识点总表 → 45 章并行写作 + 16 动画 → **4 轮评审迭代**（每轮 3 个初学者 agent 评可懂性 + 1 个专家 agent 评知识正确性，共修复约 300 处，终验 3 pass + 1 conditional）。
+
+## 部署
+
+静态站，托管在 Cloudflare Pages：
+
+```sh
+rm -rf .deploy && mkdir .deploy && cp index.html .deploy/ && cp -r assets content .deploy/
+wrangler pages deploy .deploy --project-name llm-learning --branch master
+```
 
 ## 致谢
 
