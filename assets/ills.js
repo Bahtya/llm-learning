@@ -839,151 +839,142 @@
     H.text(450, 384, "结论：先选档位再选型号；「版本是快消品，档位才是货架」——千问 3.8 半年后的智力 ≈ 一年前全球最强", { anchor: "middle", size: 14.5, fill: H.c.dim });
   };
 
-  // ============ 26. 流水线接力动画（时序动画，v1/07）============
-  // 忠实还原 SPOTLITE 白板画法（BV1YxjU6qEuw 02:32-05:00）：彩色 2048tk 芯片沿刻度尺
-  // 排队流过 GPU 面板；单卡 40 层一体 8 拍；双卡 20+20 接力 5 拍；Decode 自回归 8 拍串行。
+  // ============ 26. 流水线接力动画 v2（甘特图时序，v1/07）============
+  // 核心表达：流水线 = 甘特图上的错位重叠。三幕共用同一时间比例尺（1 拍 = 半程 20 层 × 1 个 2K），
+  // 5 拍 vs 8 拍直接可比；顶部保留实体视图（芯片流过卡A→卡B）与光标同步。
   ILLS["pp-pipeline-anim"] = function (el) {
-    var H = svgHost(el, 900, 560);
-    // 控制条
+    var H = svgHost(el, 900, 700);
+    var CHIP = ["#37d3a0", "#37d3d3", "#22b14c", "#f6b26b"];
+    var BEAT_MS = 800, GAP = 1500;
+    var GX = 160, GW = 700, UW = GW / 8, ROW_A = 210, ROW_B = 292, ROW_H = 62;
+
+    var PHASES = [
+      { key: "single", btn: "幕一 单卡", title: "单卡 32G（40 层一体）：一行排到底，8 拍", beats: 8,
+        rows: [{ name: "卡A · 40层", segs: (function () {
+                  var s = [], names = ["B1前", "B1后", "B2前", "B2后", "B3前", "B3后", "B4前", "B4后"];
+                  for (var i = 0; i < 8; i++) s.push({ start: i, label: names[i], batch: Math.floor(i / 2), back: i % 2 === 1 });
+                  return s; })() }],
+        cap: "一个 batch 的前 20 层、后 20 层都在同一张卡上排着队——下一个 batch 只能等" },
+      { key: "dual", btn: "幕二 双卡", title: "双卡 20+20 层：错位一格，流水线出现，5 拍", beats: 5,
+        rows: [{ name: "卡A · 1-20层", segs: [{ start: 0, label: "B1前", batch: 0 }, { start: 1, label: "B2前", batch: 1 }, { start: 2, label: "B3前", batch: 2 }, { start: 3, label: "B4前", batch: 3 }] },
+               { name: "卡B · 21-40层", segs: [{ start: 1, label: "B1后", batch: 0, back: 1 }, { start: 2, label: "B2后", batch: 1, back: 1 }, { start: 3, label: "B3后", batch: 2, back: 1 }, { start: 4, label: "B4后", batch: 3, back: 1 }] }],
+        cap: "卡A 交出 B1 的瞬间立刻开跑 B2 —— 同一时段两行都有活 = 流水线", overlap: [1, 4] },
+      { key: "decode", btn: "幕三 Decode", title: "Decode 自回归：想错位也错不了，还是 8 拍", beats: 8,
+        rows: [{ name: "卡A · 1-20层", segs: [{ start: 0, label: "字1前", batch: 0 }, { start: 2, label: "字2前", batch: 1 }, { start: 4, label: "字3前", batch: 2 }, { start: 6, label: "字4前", batch: 3 }] },
+               { name: "卡B · 21-40层", segs: [{ start: 1, label: "字1后", batch: 0, back: 1 }, { start: 3, label: "字2后", batch: 1, back: 1 }, { start: 5, label: "字3后", batch: 2, back: 1 }, { start: 7, label: "字4后", batch: 3, back: 1 }] }],
+        cap: "字2 必须等字1 完整出结果：空档是强依赖造成的，不是没活干", idle: true },
+    ];
+
     var bar = document.createElement("div");
     bar.className = "demo-controls";
-    var playBtn = document.createElement("button");
-    playBtn.textContent = "⏸ 暂停";
-    playBtn.style.cssText = "padding:.25em .8em;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;";
-    var replayBtn = document.createElement("button");
-    replayBtn.textContent = "↻ 重播";
-    replayBtn.style.cssText = playBtn.style.cssText;
-    bar.appendChild(playBtn); bar.appendChild(replayBtn);
+    var btns = [];
+    PHASES.forEach(function (ph, i) {
+      var b = document.createElement("button");
+      b.textContent = ph.btn;
+      b.style.cssText = "padding:.25em .7em;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;font-size:.85rem;";
+      b.onclick = function () { phase = i; beat = 0; last = null; paused = false; finished = false; syncBtns(); };
+      bar.appendChild(b); btns.push(b);
+    });
+    var replay = document.createElement("button");
+    replay.textContent = "↻ 从头播放";
+    replay.style.cssText = b.style.cssText;
+    replay.onclick = function () { phase = 0; beat = 0; last = null; paused = false; finished = false; syncBtns(); };
+    bar.appendChild(replay);
     el.appendChild(bar);
+    function syncBtns() {
+      btns.forEach(function (b, i) {
+        b.style.background = i === phase ? "var(--accent)" : "var(--paper)";
+        b.style.color = i === phase ? "#fff" : "var(--ink)";
+      });
+    }
 
-    var CHIP_COLORS = ["#37d3a0", "#37d3d3", "#22b14c", "#f6b26b"];
-    var BEAT_MS = 850, GAP_MS = 1400;
-    var PHASES = [
-      { key: "single", title: "场景一 · 单卡 32G（40 层一体）：一个 batch 跑完全部 40 层，才轮到下一个", beats: 8,
-        cap: "同一个核心同时只能处理一个 batch：4 个 2K 排队，共 8 拍" },
-      { key: "dual", title: "场景二 · 双卡 16G×2（左 1-20 层，右 21-40 层）：流水线接力", beats: 5,
-        cap: "B1 换到右卡的同时，左卡立刻开跑 B2 —— 两卡同时在算 = 同时处理 4K prompt" },
-      { key: "decode", title: "场景三 · Decode（自回归）：为什么双卡不加速", beats: 8,
-        cap: "第 2 个字必须等第 1 个字完整出结果 —— 强依赖，重叠不起来，还是 8 拍" },
-    ];
     var phase = 0, beat = 0, last = null, paused = false, finished = false;
-
-    function chipColor(i) { return CHIP_COLORS[i % 4]; }
-    function chip(H2, x, y, i, dim) {
-      H2.rect(x, y, 92, 34, { fill: chipColor(i), opacity: dim ? 0.25 : 0.9, rx: 17, stroke: dim ? H2.c.line : "none" });
-      H2.text(x + 46, y + 23, "2048tk", { anchor: "middle", size: 15, fill: dim ? H2.c.dim : "#103311", weight: "bold" });
-    }
-    function ruler(H2, y) {
-      H2.line(40, y, 860, y, { stroke: H2.c.dim, sw: 1.5 });
-      H2.text(866, y + 5, "排队", { size: 13, fill: H2.c.dim });
-    }
-    function gpuPanel(H2, x, y, w, h, label, sub) {
-      H2.rect(x, y, w, h, { fill: "#2b6cb0", opacity: 0.16, stroke: "#2b6cb0", sw: 2, rx: 10 });
-      H2.text(x + w / 2, y + 26, label, { anchor: "middle", size: 16, weight: "bold", fill: "#2b6cb0" });
-      H2.text(x + w / 2, y + h - 12, sub, { anchor: "middle", size: 13, fill: H2.c.dim });
-    }
-    // 面板内 20 层小格，p∈[0,1] 点亮比例
-    function layers(H2, x, y, w, p, color) {
-      var n = 20, cw = (w - 20) / n;
-      for (var i = 0; i < n; i++) {
-        var on = i / n < p;
-        H2.rect(x + 10 + i * cw, y, cw - 2.5, 16, { fill: on ? color : H2.c.line, stroke: "none", rx: 2, opacity: on ? 0.9 : 0.6 });
-      }
-    }
-
-    function renderScene(p, b) {
-      var t = b; // 全局拍
-      if (p === 0) { // 单卡
-        ruler(H, 84);
-        H.text(52, 70, "8K prompt = 4 × 2048tk", { size: 13, fill: H.c.dim });
-        var doneN = Math.min(4, Math.floor(t / 2) + (t % 1 > 0.99 ? 1 : 0));
-        var cur = Math.floor(t / 2);
-        var inProgress = cur < 4;
-        // 排队 chips
-        for (var i = 0; i < 4; i++) {
-          if (i < cur) continue;
-          var dim = i > cur;
-          chip(H, 60 + (i - cur) * 0, 110 + 0, i, dim); // 排队首列
-        }
-        // 上面循环改为横排
-        // GPU 面板
-        gpuPanel(H, 60, 170, 620, 190, "GPU · 40 层 · 32G", inProgress ? "正在处理 B" + (cur + 1) + "（同一核心同时只能处理一个 batch）" : "全部完成");
-        var prog = inProgress ? ((t % 1) + (t % 2 >= 1 ? 1 : 0)) / 2 : 1;
-        layers(H, 80, 240, 580, prog, chipColor(cur));
-        H.text(80, 226, inProgress ? "前 20 层 / 后 20 层：" + Math.round(prog * 100) + "%" : "——", { size: 13, fill: H.c.dim });
-        // 完成区
-        for (var d = 0; d < Math.min(4, cur + (inProgress ? 0 : 0)); d++) {
-          if (d < cur) chip(H, 700, 190 + d * 46, d, true), H.text(800, 212 + d * 46, "✓", { size: 18, fill: H.c.accent, weight: "bold" });
-        }
-        H.text(700, 176, "完成", { size: 13, fill: H.c.dim });
-        // 排队横排
-        for (var q = cur + (inProgress ? 1 : 0); q < 4; q++) chip(H, 60 + (q - cur) * 110 - (inProgress ? 0 : 0), 110, q, true);
-        if (inProgress) chip(H, 60, 110, cur, false);
-        H.text(620, 132, "拍 " + (Math.floor(t) + 1) + " / 8：跑完一个 2K 才轮到下一个", { size: 14, fill: "#c25b4e" });
-      }
-      if (p === 1) { // 双卡
-        ruler(H, 84);
-        H.text(52, 70, "左卡放 1-20 层，右卡放 21-40 层", { size: 13, fill: H.c.dim });
-        var aChip = Math.floor(t);          // 左卡正在算的 batch（0..3）
-        var bChip = Math.floor(t) - 1;      // 右卡正在算的 batch（-1..3）
-        var aBusy = aChip >= 0 && aChip < 4 && t < 4.999 && aChip <= 3 && (t < 4 ? true : false);
-        aBusy = aChip >= 0 && aChip < 4 && t < 4 + (t % 1);
-        var bBusy = bChip >= 0 && bChip < 4;
-        // 排队
-        var queuedFrom = aChip + 1;
-        for (var q2 = queuedFrom; q2 < 4; q2++) chip(H, 40 + (q2 - queuedFrom) * 110, 110, q2, true);
-        if (queuedFrom < 4) H.text(40 + (4 - queuedFrom) * 110 + 60, 132, "等待中", { size: 12, fill: H.c.dim });
-        // 两块面板
-        gpuPanel(H, 60, 170, 300, 200, "卡 A · 1-20 层", aBusy ? "正在算 B" + (aChip + 1) + " 前半" : "空闲");
-        gpuPanel(H, 540, 170, 300, 200, "卡 B · 21-40 层", bBusy ? "正在算 B" + (bChip + 1) + " 后半" : (t < 1 ? "等待第一个 batch" : "完成"));
-        if (aBusy) { layers(H, 76, 240, 270, t % 1, chipColor(aChip)); chip(H, 76, 190, aChip, false); }
-        if (bBusy) { layers(H, 556, 240, 270, t % 1, chipColor(bChip)); chip(H, 556, 190, bChip, false); }
-        // 交接大箭头
-        H.path("M370,255 L425,255 L425,235 L465,270 L425,305 L425,285 L370,285 Z", { fill: H.c.accent, opacity: 0.75 });
-        H.text(418, 330, "交接", { anchor: "middle", size: 13, fill: H.c.dim });
-        // 同时在算高亮
-        if (aBusy && bBusy) {
-          H.rect(60, 385, 780, 36, { fill: "#f6b26b", opacity: 0.18, stroke: "#b8860b" });
-          H.text(450, 409, "⚡ 两卡同时亮 = 同时在处理 2×2K = 4K prompt（单卡同时只有 2K）", { anchor: "middle", size: 15, fill: "#b8860b", weight: "bold" });
-        } else if (t < 1) {
-          H.text(450, 409, "起步：右卡在等左卡交出第一个 batch", { anchor: "middle", size: 14, fill: H.c.dim });
-        }
-        H.text(660, 132, "拍 " + (Math.min(5, Math.floor(t) + 1)) + " / 5", { size: 14, fill: H.c.accent });
-      }
-      if (p === 2) { // decode
-        ruler(H, 84);
-        H.text(52, 70, "生成的字一个接一个：字 N 的输入依赖字 N-1 的结果", { size: 13, fill: H.c.dim });
-        var tok = Math.floor(t / 2);       // 当前字
-        var half = t % 2 >= 1;             // 本拍在卡 B？
-        for (var k = 0; k < 4; k++) {
-          var done = k < tok, cur2 = k === tok;
-          H.rect(60 + k * 200, 106, 150, 38, { fill: cur2 ? chipColor(k) : (done ? H.c.line : H.c.paper), opacity: cur2 ? 0.9 : 1, stroke: cur2 ? "none" : H.c.line, rx: 8 });
-          H.text(135 + k * 200, 130, (done ? "✓ " : "") + "字" + (k + 1), { anchor: "middle", size: 15, fill: cur2 ? "#103311" : (done ? H.c.dim : H.c.ink) });
-          if (k < 3) H.connect(212 + k * 200, 125, 258 + k * 200, 125, { stroke: done ? H.c.dim : "#c25b4e", sw: 2 });
-        }
-        gpuPanel(H, 60, 170, 300, 200, "卡 A · 1-20 层", !half ? "正在算 字" + (tok + 1) + " 前半" : "等右卡结果");
-        gpuPanel(H, 540, 170, 300, 200, "卡 B · 21-40 层", half ? "正在算 字" + (tok + 1) + " 后半" : "等左卡");
-        if (!half && tok < 4) { layers(H, 76, 240, 270, t % 1, chipColor(tok)); chip(H, 76, 190, tok, false); }
-        if (half && tok < 4) { layers(H, 556, 240, 270, t % 1, chipColor(tok)); chip(H, 556, 190, tok, false); }
-        H.path("M370,255 L425,255 L425,235 L465,270 L425,305 L425,285 L370,285 Z", { fill: H.c.line, opacity: 0.6 });
-        H.text(450, 409, "自回归：字" + Math.min(4, tok + 2 > 4 ? 4 : tok + 2) + " 的前 20 层必须等字" + (tok + 1) + " 完整出结果 → 接力空转，两卡永远只有一张在忙", { anchor: "middle", size: 15, fill: "#c25b4e" });
-        H.text(660, 132, "拍 " + (Math.floor(t) + 1) + " / 8", { size: 14, fill: "#c25b4e" });
-      }
-    }
 
     function draw() {
       var ph = PHASES[phase];
-      H.svg.innerHTML = "";
-      H.redraw();
-      H.text(450, 28, ph.title, { anchor: "middle", size: 17, weight: "bold" });
-      renderScene(phase, beat);
-      // 幕间字幕/结论
-      if (beat >= ph.beats) {
-        if (phase === 0) H.text(450, 500, "单卡：4 × 2K = 8 拍跑完。PP ≈ 580 tok/s", { anchor: "middle", size: 16, fill: H.c.dim });
-        if (phase === 1) H.text(450, 500, "双卡：5 拍跑完同样的 8K → 5/8 的时长，PP ≈ 800+ tok/s（+50%）", { anchor: "middle", size: 16, fill: H.c.accent, weight: "bold" });
-        if (phase === 2) { finished = true; H.text(450, 500, "对照结论：Prefill 可重叠（+50%）；Decode 自回归串行（不变）——两阶段瓶颈不同的完整原因", { anchor: "middle", size: 15, fill: H.c.dim }); }
+      H.svg.innerHTML = ""; H.redraw();
+      H.text(450, 26, ph.title, { anchor: "middle", size: 17, weight: "bold" });
+
+      // 顶部实体视图（与光标同步）
+      var pa = PHASES[phase].key;
+      function miniPanel(x, w, label, active, seg) {
+        H.rect(x, 46, w, 58, { fill: active ? "#2b6cb0" : H.c.paper, opacity: active ? 0.25 : 1, stroke: active ? "#2b6cb0" : H.c.line, sw: active ? 2.5 : 1.5, rx: 8 });
+        H.text(x + w / 2, 66, label, { anchor: "middle", size: 13.5, weight: "bold", fill: active ? "#2b6cb0" : H.c.dim });
+        if (seg) H.text(x + w / 2, 88, seg, { anchor: "middle", size: 13, weight: "bold" });
+      }
+      var t = Math.min(beat, ph.beats);
+      var aSeg = null, bSeg = null;
+      ph.rows[0].segs.forEach(function (s) { if (t >= s.start && t < s.start + 1) aSeg = s; });
+      if (ph.rows[1]) ph.rows[1].segs.forEach(function (s) { if (t >= s.start && t < s.start + 1) bSeg = s; });
+      if (pa === "single") {
+        miniPanel(320, 260, "GPU · 40 层", !!aSeg, aSeg ? aSeg.label : "—");
       } else {
-        H.text(450, 500, ph.cap, { anchor: "middle", size: 14, fill: H.c.dim });
+        miniPanel(230, 200, "卡A · 1-20层", !!aSeg, aSeg ? aSeg.label : (pa === "decode" ? "等依赖" : "空闲"));
+        H.path("M445,72 L455,72 L455,64 L470,75 L455,86 L455,78 L445,78 Z", { fill: (aSeg && bSeg) ? H.c.accent : H.c.line });
+        miniPanel(480, 200, "卡B · 21-40层", !!bSeg, bSeg ? bSeg.label : (pa === "decode" ? "等依赖" : (pa === "dual" && t < 1 ? "等第一个batch" : "空闲")));
+      }
+
+      // 甘特图
+      var gy = 150;
+      H.text(30, gy - 8, "时间 →（拍）", { size: 13, fill: H.c.dim });
+      for (var i = 0; i <= 8; i++) {
+        var tx = GX + i * UW;
+        H.line(tx, gy, tx, gy + 8, { stroke: H.c.dim });
+        if (i) H.text(tx - UW / 2, gy - 6, String(i), { anchor: "middle", size: 12, fill: H.c.dim });
+      }
+      // 重叠区高亮
+      if (ph.overlap) {
+        H.rect(GX + ph.overlap[0] * UW, gy + 12, (ph.overlap[1] - ph.overlap[0]) * UW, (ROW_B + ROW_H) - ROW_A + 4,
+          { fill: "#f6b26b", opacity: 0.16, stroke: "#b8860b", dash: "5 4" });
+        H.text(GX + (ph.overlap[0] + ph.overlap[1]) / 2 * UW, gy + 26, "重叠区：两卡同时在算", { anchor: "middle", size: 13, fill: "#b8860b", weight: "bold" });
+      }
+      // 行
+      ph.rows.forEach(function (row, ri) {
+        var ry = ri === 0 ? ROW_A : ROW_B;
+        H.text(30, ry + ROW_H / 2 + 5, row.name, { size: 15, weight: "bold" });
+        H.rect(GX, ry, GW, ROW_H, { fill: H.c.paper, stroke: H.c.line });
+        // decode 的空档 = 等依赖
+        if (ph.idle) {
+          for (var s2 = 0; s2 < 8; s2++) {
+            var busy = row.segs.some(function (g) { return s2 >= g.start && s2 < g.start + 1; });
+            if (!busy) H.rect(GX + s2 * UW + 3, ry + 8, UW - 6, ROW_H - 16, { fill: "#c25b4e", opacity: 0.08 });
+          }
+        }
+        row.segs.forEach(function (g) {
+          var bx = GX + g.start * UW + 3, bw = UW - 6;
+          H.rect(bx, ry + 8, bw, ROW_H - 16, { fill: CHIP[g.batch % 4], opacity: g.back ? 0.6 : 0.95, rx: 5 });
+          H.text(bx + bw / 2, ry + ROW_H / 2 + 5, g.label, { anchor: "middle", size: 13.5, weight: "bold", fill: "#103311" });
+          // 完成态勾
+          if (beat >= g.start + 1) H.text(bx + bw - 9, ry + 18, "✓", { anchor: "middle", size: 11, fill: "#103311" });
+        });
+      });
+      // 时间光标
+      var cx = GX + Math.min(beat, ph.beats) * UW;
+      H.line(cx, gy - 4, cx, ROW_B + ROW_H + 14, { stroke: "#c25b4e", sw: 2.5 });
+      H.circle(cx, gy - 4, 4, { fill: "#c25b4e", stroke: "none" });
+
+      // 底部结论
+      if (beat >= ph.beats) {
+        if (phase === 0) H.text(450, 412, "8 拍。PP ≈ 580 tok/s —— 一行排到底，没有任何重叠", { anchor: "middle", size: 16, fill: H.c.dim });
+        if (phase === 1) H.text(450, 412, "5 拍跑完同样的 8K → 时长 5/8，PP ≈ 800+ tok/s（+50%）——橙色区就是流水线", { anchor: "middle", size: 16, fill: "#b8860b", weight: "bold" });
+        if (phase === 2) { finished = true; H.text(450, 412, "仍是 8 拍：空档全是「等上一个字」，强依赖杀死了流水线 —— Decode 不加速", { anchor: "middle", size: 16, fill: "#c25b4e" }); }
+      } else {
+        H.text(450, 412, ph.cap, { anchor: "middle", size: 14, fill: H.c.dim });
+      }
+
+      // 终局对比条（同一比例尺）
+      if (finished) {
+        H.text(60, 470, "同一时间比例尺下的总时长：", { size: 15 });
+        var bars = [["单卡 Prefill", 8, H.c.dim], ["双卡 Prefill", 5, H.c.accent], ["双卡 Decode", 8, "#c25b4e"]];
+        bars.forEach(function (b, i) {
+          var by = 486 + i * 40;
+          H.text(60, by + 18, b[0], { size: 14 });
+          H.rect(200, by, b[1] / 8 * 600, 26, { fill: b[2], opacity: 0.8, rx: 5 });
+          H.text(200 + b[1] / 8 * 600 + 10, by + 19, b[1] + " 拍" + (i === 1 ? "（+50%）" : i === 2 ? "（不加速）" : ""), { size: 14, weight: "bold" });
+        });
+        H.text(450, 636, "流水线的收益只属于「前后无依赖」的活；Decode 的强依赖把它全部吃掉", { anchor: "middle", size: 14, fill: H.c.dim });
+      } else {
+        H.text(450, 470, "拍 " + Math.min(ph.beats, Math.ceil(beat)) + " / " + ph.beats + "　·　1 拍 = 半程 20 层 × 1 个 2K batch", { anchor: "middle", size: 13, fill: H.c.dim });
       }
     }
 
@@ -993,26 +984,16 @@
       if (!paused && !finished) {
         beat += dt / BEAT_MS;
         var ph = PHASES[phase];
-        if (beat >= ph.beats + GAP_MS / BEAT_MS) {
-          if (phase < PHASES.length - 1) { phase++; beat = 0; }
-          else { beat = ph.beats; finished = true; playBtn.textContent = "↻ 重播"; }
+        if (beat >= ph.beats + GAP / BEAT_MS) {
+          if (phase < PHASES.length - 1) { phase++; beat = 0; syncBtns(); }
+          else { beat = ph.beats; finished = true; draw(); }
         }
-        draw();
+        if (!(finished)) draw();
       }
       if (!(finished && beat >= PHASES[2].beats)) DemoSys.raf(tick);
     }
 
-    playBtn.onclick = function () {
-      if (finished) { replayBtn.onclick(); return; }
-      paused = !paused;
-      playBtn.textContent = paused ? "▶ 播放" : "⏸ 暂停";
-    };
-    replayBtn.onclick = function () {
-      phase = 0; beat = 0; last = null; paused = false; finished = false;
-      playBtn.textContent = "⏸ 暂停"; draw();
-    };
-
-    draw();
+    syncBtns(); draw();
     DemoSys.raf(tick);
   };
 
