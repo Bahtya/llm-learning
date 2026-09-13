@@ -67,12 +67,14 @@
   }
 
   function raf(fn) {
-    var id = requestAnimationFrame(function loop(t) {
+    var handle = { id: 0 };
+    function loop(t) {
       fn(t);
-      id = requestAnimationFrame(loop);
-      LIVE.add(id);
-    });
-    LIVE.add(id);
+      if (!LIVE.has(handle)) return; // 已被 stopAll 停掉
+      handle.id = requestAnimationFrame(loop);
+    }
+    handle.id = requestAnimationFrame(loop);
+    LIVE.add(handle);
   }
 
   function inkFill(ctx, x, y, text, color) {
@@ -705,5 +707,5 @@
   };
 
   window.DEMOS = DEMOS;
-  window.DemoSys = { canvasHost: canvasHost, controls: controls, note: note, raf: raf, cssVar: cssVar, stopAll: function () { LIVE.forEach(cancelAnimationFrame); LIVE.clear(); } };
+  window.DemoSys = { canvasHost: canvasHost, controls: controls, note: note, raf: raf, cssVar: cssVar, stopAll: function () { LIVE.forEach(function (h) { cancelAnimationFrame(h.id); }); LIVE.clear(); } };
 })();
