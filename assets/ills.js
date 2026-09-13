@@ -865,23 +865,6 @@
         cap: "字2 必须等字1 完整出结果：空档是强依赖造成的，不是没活干", idle: true },
     ];
 
-    var bar = document.createElement("div");
-    bar.className = "demo-controls";
-    var btns = [];
-    var btnCss = "padding:.25em .7em;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;font-size:.85rem;";
-    PHASES.forEach(function (ph, i) {
-      var b = document.createElement("button");
-      b.textContent = ph.btn;
-      b.style.cssText = btnCss;
-      b.onclick = function () { phase = i; beat = 0; last = null; paused = false; finished = false; syncBtns(); start(); };
-      bar.appendChild(b); btns.push(b);
-    });
-    var replay = document.createElement("button");
-    replay.textContent = "↻ 从头播放";
-    replay.style.cssText = btnCss;
-    replay.onclick = function () { phase = 0; beat = 0; last = null; paused = false; finished = false; syncBtns(); draw(); start(); };
-    bar.appendChild(replay);
-    el.appendChild(bar);
     function syncBtns() {
       btns.forEach(function (b, i) {
         b.style.background = i === phase ? "var(--accent)" : "var(--paper)";
@@ -889,65 +872,104 @@
       });
     }
 
-    // 状态机：单调度链——DemoSys.raf 每帧调 tick；按钮只重置状态（循环常驻，finished 时空转待命）
     var phase = 0, beat = 0, last = null, paused = false, finished = false;
     var running = false, frameFlip = 0;
 
     function start() {
-      if (running) return;
+      if (running) return;              // 循环常驻：按钮重置状态即可复活
       running = true; last = null;
       DemoSys.raf(tick);
     }
     function resetTo(p) {
       phase = p; beat = 0; paused = false; finished = false; frameFlip = 0;
-      syncBtns(); draw(); start();
-    }
-
-    // 面板与层格助手
-    function gpuPanel(H2, x, y, w, h, label, sub) {
-      H2.rect(x, y, w, h, { fill: "#2b6cb0", opacity: 0.16, stroke: "#2b6cb0", sw: 2, rx: 10 });
-      H2.text(x + w / 2, y + 26, label, { anchor: "middle", size: 15, weight: "bold", fill: "#2b6cb0" });
-      H2.text(x + w / 2, y + h - 12, sub, { anchor: "middle", size: 12.5, fill: H2.c.dim });
-    }
-    function layers(H2, x, y, w, p, color) {
-      var n = 20, cw = (w - 20) / n;
-      for (var i = 0; i < n; i++) {
-        var on = i / n < p;
-        H2.rect(x + 10 + i * cw, y, cw - 2.5, 16, { fill: on ? color : H2.c.line, stroke: "none", rx: 2, opacity: on ? 0.9 : 0.6 });
-      }
-    }
-
-    // 三幕实体场景（与甘特光标同步的顶部视图）
-    function renderScene(p, b) {
-      var t = Math.min(b, PHASES[p].beats);
-      if (p === 0) {
-        gpuPanel(H, 260, 46, 380, 58, "GPU · 40 层 · 32G", t >= 8 ? "4 个 batch 全部完成" : "正在处理 B" + (Math.min(4, Math.floor(t) + 1)) + "（一次只有一个）");
-        layers(H, 300, 74, 300, t % 1, CHIP[Math.min(3, Math.floor(t)) % 4]);
-        var names0 = ["B1前", "B1后", "B2前", "B2后", "B3前", "B3后", "B4前", "B4后"];
-        H.text(260, 118, t >= 8 ? "✓ 全部完成" : "当前段：" + names0[Math.floor(t)], { size: 13, fill: H.c.dim });
-      } else {
-        var aSeg = null, bSeg = null;
-        PHASES[1].rows[0].segs.forEach(function (s) { if (t >= s.start && t < s.start + 1) aSeg = s; });
-        PHASES[1].rows[1].segs.forEach(function (s) { if (t >= s.start && t < s.start + 1) bSeg = s; });
-        var bWait = t < 1;
-        gpuPanel(H, 120, 46, 220, 58, "卡A · 1-20层", aSeg ? aSeg.label : "空闲");
-        H.path("M352,72 L362,72 L362,62 L378,75 L362,88 L362,78 L352,78 Z", { fill: (aSeg && bSeg) ? H.c.accent : H.c.line });
-        gpuPanel(H, 390, 46, 220, 58, "卡B · 21-40层", bSeg ? bSeg.label : (bWait ? "等第一个batch" : "空闲"));
-        H.text(630, 80, (aSeg && bSeg) ? "⚡ 同时在算 4K" : "单卡时段：一次只有 2K", { size: 14, fill: (aSeg && bSeg) ? "#b8860b" : H.c.dim, weight: (aSeg && bSeg) ? "bold" : "normal" });
-      }
+      syncBtns(); draw();
     }
 
     function draw() {
       var ph = PHASES[phase];
       H.svg.innerHTML = ""; H.redraw();
       H.text(450, 26, ph.title, { anchor: "middle", size: 17, weight: "bold" });
-      renderScene(phase, beat);
-      if (beat >= ph.beats) {
-        if (phase === 0) H.text(450, 500, "单卡：4 × 2K = 8 拍跑完。PP ≈ 580 tok/s", { anchor: "middle", size: 16, fill: H.c.dim });
-        if (phase === 1) H.text(450, 500, "双卡：5 拍跑完同样的 8K → 时长 5/8，PP ≈ 800+ tok/s（+50%）", { anchor: "middle", size: 16, fill: H.c.accent, weight: "bold" });
-        if (phase === 2) H.text(450, 500, "对照结论：Prefill 可重叠（+50%）；Decode 自回归串行（不变）", { anchor: "middle", size: 15, fill: H.c.dim });
+
+      // 顶部实体视图（与光标同步）
+      var pa = PHASES[phase].key;
+      function miniPanel(x, w, label, active, seg) {
+        H.rect(x, 46, w, 58, { fill: active ? "#2b6cb0" : H.c.paper, opacity: active ? 0.25 : 1, stroke: active ? "#2b6cb0" : H.c.line, sw: active ? 2.5 : 1.5, rx: 8 });
+        H.text(x + w / 2, 66, label, { anchor: "middle", size: 13.5, weight: "bold", fill: active ? "#2b6cb0" : H.c.dim });
+        if (seg) H.text(x + w / 2, 88, seg, { anchor: "middle", size: 13, weight: "bold" });
+      }
+      var t = Math.min(beat, ph.beats);
+      var aSeg = null, bSeg = null;
+      ph.rows[0].segs.forEach(function (s) { if (t >= s.start && t < s.start + 1) aSeg = s; });
+      if (ph.rows[1]) ph.rows[1].segs.forEach(function (s) { if (t >= s.start && t < s.start + 1) bSeg = s; });
+      if (pa === "single") {
+        miniPanel(320, 260, "GPU · 40 层", !!aSeg, aSeg ? aSeg.label : "—");
       } else {
-        H.text(450, 500, ph.cap, { anchor: "middle", size: 14, fill: H.c.dim });
+        miniPanel(230, 200, "卡A · 1-20层", !!aSeg, aSeg ? aSeg.label : (pa === "decode" ? "等依赖" : "空闲"));
+        H.path("M445,72 L455,72 L455,64 L470,75 L455,86 L455,78 L445,78 Z", { fill: (aSeg && bSeg) ? H.c.accent : H.c.line });
+        miniPanel(480, 200, "卡B · 21-40层", !!bSeg, bSeg ? bSeg.label : (pa === "decode" ? "等依赖" : (pa === "dual" && t < 1 ? "等第一个batch" : "空闲")));
+      }
+
+      // 甘特图
+      var gy = 150;
+      H.text(30, gy - 8, "时间 →（拍）", { size: 13, fill: H.c.dim });
+      for (var i = 0; i <= 8; i++) {
+        var tx = GX + i * UW;
+        H.line(tx, gy, tx, gy + 8, { stroke: H.c.dim });
+        if (i) H.text(tx - UW / 2, gy - 6, String(i), { anchor: "middle", size: 12, fill: H.c.dim });
+      }
+      // 重叠区高亮
+      if (ph.overlap) {
+        H.rect(GX + ph.overlap[0] * UW, gy + 12, (ph.overlap[1] - ph.overlap[0]) * UW, (ROW_B + ROW_H) - ROW_A + 4,
+          { fill: "#f6b26b", opacity: 0.16, stroke: "#b8860b", dash: "5 4" });
+        H.text(GX + (ph.overlap[0] + ph.overlap[1]) / 2 * UW, gy + 26, "重叠区：两卡同时在算", { anchor: "middle", size: 13, fill: "#b8860b", weight: "bold" });
+      }
+      // 行
+      ph.rows.forEach(function (row, ri) {
+        var ry = ri === 0 ? ROW_A : ROW_B;
+        H.text(30, ry + ROW_H / 2 + 5, row.name, { size: 15, weight: "bold" });
+        H.rect(GX, ry, GW, ROW_H, { fill: H.c.paper, stroke: H.c.line });
+        // decode 的空档 = 等依赖
+        if (ph.idle) {
+          for (var s2 = 0; s2 < 8; s2++) {
+            var busy = row.segs.some(function (g) { return s2 >= g.start && s2 < g.start + 1; });
+            if (!busy) H.rect(GX + s2 * UW + 3, ry + 8, UW - 6, ROW_H - 16, { fill: "#c25b4e", opacity: 0.08 });
+          }
+        }
+        row.segs.forEach(function (g) {
+          var bx = GX + g.start * UW + 3, bw = UW - 6;
+          H.rect(bx, ry + 8, bw, ROW_H - 16, { fill: CHIP[g.batch % 4], opacity: g.back ? 0.6 : 0.95, rx: 5 });
+          H.text(bx + bw / 2, ry + ROW_H / 2 + 5, g.label, { anchor: "middle", size: 13.5, weight: "bold", fill: "#103311" });
+          // 完成态勾
+          if (beat >= g.start + 1) H.text(bx + bw - 9, ry + 18, "✓", { anchor: "middle", size: 11, fill: "#103311" });
+        });
+      });
+      // 时间光标
+      var cx = GX + Math.min(beat, ph.beats) * UW;
+      H.line(cx, gy - 4, cx, ROW_B + ROW_H + 14, { stroke: "#c25b4e", sw: 2.5 });
+      H.circle(cx, gy - 4, 4, { fill: "#c25b4e", stroke: "none" });
+
+      // 底部结论
+      if (beat >= ph.beats) {
+        if (phase === 0) H.text(450, 412, "8 拍。PP ≈ 580 tok/s —— 一行排到底，没有任何重叠", { anchor: "middle", size: 16, fill: H.c.dim });
+        if (phase === 1) H.text(450, 412, "5 拍跑完同样的 8K → 时长 5/8，PP ≈ 800+ tok/s（+50%）——橙色区就是流水线", { anchor: "middle", size: 16, fill: "#b8860b", weight: "bold" });
+        if (phase === 2) { finished = true; H.text(450, 412, "仍是 8 拍：空档全是「等上一个字」，强依赖杀死了流水线 —— Decode 不加速", { anchor: "middle", size: 16, fill: "#c25b4e" }); }
+      } else {
+        H.text(450, 412, ph.cap, { anchor: "middle", size: 14, fill: H.c.dim });
+      }
+
+      // 终局对比条（同一比例尺）
+      if (finished) {
+        H.text(60, 470, "同一时间比例尺下的总时长：", { size: 15 });
+        var bars = [["单卡 Prefill", 8, H.c.dim], ["双卡 Prefill", 5, H.c.accent], ["双卡 Decode", 8, "#c25b4e"]];
+        bars.forEach(function (b, i) {
+          var by = 486 + i * 40;
+          H.text(60, by + 18, b[0], { size: 14 });
+          H.rect(200, by, b[1] / 8 * 600, 26, { fill: b[2], opacity: 0.8, rx: 5 });
+          H.text(200 + b[1] / 8 * 600 + 10, by + 19, b[1] + " 拍" + (i === 1 ? "（+50%）" : i === 2 ? "（不加速）" : ""), { size: 14, weight: "bold" });
+        });
+        H.text(450, 636, "流水线的收益只属于「前后无依赖」的活；Decode 的强依赖把它全部吃掉", { anchor: "middle", size: 14, fill: H.c.dim });
+      } else {
+        H.text(450, 470, "拍 " + Math.min(ph.beats, Math.ceil(beat)) + " / " + ph.beats + "　·　1 拍 = 半程 20 层 × 1 个 2K batch", { anchor: "middle", size: 13, fill: H.c.dim });
       }
     }
 
