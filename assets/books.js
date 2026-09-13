@@ -59,3 +59,29 @@ const BOOKS = [
     { id: "03", title: "案例出处对照：BV 号 → 视频" },
   ]},
 ];
+
+// BV 号 → 视频标题（案例块与出处表的可点击链接用；与 v6/03 对照表保持一致）
+const VIDEOS = {
+  BV1nVVr6QEFq: { t: "立省5万！两张2080ti 27B稠密，单并发100tok/s" },
+  BV1QC7Q61E3T: { t: "3500块！Qwen3.6 27B FP8权重 80tok/s" },
+  BV12ZEN6CEho: { t: "花费高昂！27B稠密100Tk/s，装机全指南" },
+  BV1XrE26iEMG: { t: "2600tk/s! 8年老卡疯狗填充27B稠密INT8" },
+  BV1KKE96CELt: { t: "紧急刹车！不要购买任何显卡用于本地AI推理" },
+  BV1UMEv68E3C: { t: "大模型KV缓存要100G？我们一起来算算" },
+  BV14UEY6WEW7: { t: "Pro6000是本地AI的终极答案？我看未必" },
+  BV1Y2LX61EjQ: { t: "NVLink在双卡张量并行推理下，到底有没有用" },
+  BV1YxjU6qEuw: { t: "本地AI最大怨种显卡已经出现！显存比显卡还贵" },
+  BV14yT46kE5T: { t: "什么！20系显卡竟然支持FP8甚至NVFP4" },
+  BV1kgN26SECZ: { t: "\"本周xx模型调用量世界第一？\"别骗自己了" },
+  BV17QN66tEKX: { t: "一夜之间这张显卡身价暴涨20倍" },
+  BV1dtgf6pEbW: { t: "268G显存的怒吼" },
+  BV1dx3Q6iEbZ: { t: "PCIE1.0x4下，双卡跑大模型依然比单卡快" },
+  BV1qU846JEpW: { t: "本地AI推理，CPU性能重要吗" },
+  BV1qGh56JEj2: { t: "投机解码还是投机倒把？MTP DFlash DSpark实测对比" },
+  BV1E5426eE5X: { t: "垃圾佬畅玩AI，10张百元级AI神卡推荐" },
+  BV1hLtG6ZE5M: { t: "本地AI温饱之道。1~3千的八张AI显卡推荐" },
+  BV1xQtf6SEHR: { t: "2张10系显卡+U盘，怒推176B Qwen3.8Flash" },
+  BV1GtbL63Ekt: { t: "入坑本地AI之前的几个重要心法建议" },
+  BV1i6Y86AEv3: { t: "本地AI智商税？3千-1万单卡方案我都不推荐" },
+  BV1otY26LE8w: { t: "统一内存为什么是本地部署200B级MoE模型的答案" }
+};

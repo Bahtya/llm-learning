@@ -38,6 +38,18 @@
     if (e.target.tagName === "A") { toc.hidden = true; tocMask.hidden = true; }
   });
 
+  // ---------- BV 号 → 可点击的 B 站链接（案例块附标题） ----------
+  function linkBvids(html) {
+    return html.replace(/视频出处：(BV[0-9A-Za-z]{10})|(BV[0-9A-Za-z]{10})/g, function (m, cited, plain) {
+      var id = cited || plain;
+      var meta = window.VIDEOS && window.VIDEOS[id];
+      if (!meta) return m;
+      var href = "https://www.bilibili.com/video/" + id;
+      if (cited) return '视频出处：<a class="bili" href="' + href + '" target="_blank" rel="noopener">' + id + "《" + meta.t + "》▶</a>";
+      return '<a class="bili" href="' + href + '" target="_blank" rel="noopener">' + id + " ▶</a>";
+    });
+  }
+
   // ---------- 路由 ----------
   function parseRoute() {
     var m = location.hash.match(/^#\/(v\d+)\/(\d+)$/);
@@ -55,7 +67,7 @@
     crumb.textContent = "";
     var html = "<h1>大模型入门</h1>" +
       '<p class="muted">本书把 B 站 UP 主（视频作者）<strong>SPOTLITE</strong> 的本地大模型推理视频里出现的每一个概念从零讲懂。' +
-      'SPOTLITE 是一位在本地硬件上跑大模型的开发者兼 UP 主；书中 <code>BV 号</code> 是 B 站视频的唯一编号（如 BV1UMEv68E3C），' +
+      'SPOTLITE 是一位在本地硬件上跑大模型的开发者兼 UP 主；书中 <code>BV 号</code> 都可直接点击跳到 B 站原视频（案例块会附视频标题），' +
       '「案例」引用块摘自他的视频原话（常引用后文章节的概念，括号里的链接可先跳过）；书中型号名均取自视频口播口径，以模型卡为准。' +
       '建议按卷顺序阅读；遇到忘了的词，回 <a href="#/v6/02">术语速查表</a> 查。</p>';
     BOOKS.forEach(function (b) {
@@ -67,7 +79,7 @@
       });
       html += "</ol></section>";
     });
-    content.innerHTML = html;
+    content.innerHTML = linkBvids(html);
     pager.innerHTML = "";
     renderToc();
   }
@@ -79,7 +91,7 @@
     var html = "";
     if (prev) html += '<a href="#/' + book.vol + "/" + prev.id + '"><span>上一篇</span>' + prev.title + "</a>";
     else html += "<a href='#/'><span>返回</span>首页</a>";
-    if (next) html += '<a class="next" href="#/' + next.vol + "/" + next.id + '"><span>下一篇（点击标记本章已读）</span>' + next.title + "</a>";
+    if (next) html += '<a class="next" href="#/' + (next.vol || book.vol) + "/" + next.id + '"><span>下一篇（点击标记本章已读）</span>' + next.title + "</a>";
     pager.innerHTML = html;
     // 点击"下一篇"= 当前章已读
     pager.querySelectorAll("a").forEach(function (a) {
@@ -103,7 +115,7 @@
     fetch("content/" + vol + "/" + id + ".md")
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
       .then(function (text) {
-        content.innerHTML = "<h1>" + hit.ch.title + "</h1>" + mdToHtml(text);
+        content.innerHTML = linkBvids("<h1>" + hit.ch.title + "</h1>" + mdToHtml(text));
         content.querySelectorAll("[data-demo]").forEach(function (el) {
           var fn = window.DEMOS && window.DEMOS[el.dataset.demo];
           if (fn) { try { fn(el); } catch (e) { el.innerHTML = '<p class="muted">动画加载失败：' + e.message + "</p>"; } }

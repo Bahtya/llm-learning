@@ -115,3 +115,6 @@ tr:nth-child(even) td { background: color-mix(in srgb, var(--code-bg) 40%, trans
 .home-vol ol { margin: .4rem 0 0; padding-left: 1.3rem; }
 .home-vol li { margin: .15rem 0; }
 .home-vol li.read a::after { content: " ✓"; color: var(--accent); }
+
+/* BV 号链接 */
+a.bili { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); white-space: nowrap; }
