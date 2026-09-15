@@ -1008,6 +1008,158 @@
     syncBtns(); draw(); start();
   };
 
+  // ============ 27. 为什么非要量化（三联板，v2/01 末）============
+  ILLS["why-quantize"] = function (el) {
+    var H = svgHost(el, 900, 360);
+    H.text(450, 26, "三笔账算完，「砍位宽」就不是选择题", { anchor: "middle", size: 18, weight: "bold" });
+    // ① 装不下
+    H.rect(20, 50, 280, 200, { fill: H.c.soft, stroke: H.c.accent, rx: 10 });
+    H.text(160, 76, "① 装不下", { anchor: "middle", size: 16, weight: "bold" });
+    H.rect(45, 96, 230, 30, { fill: "#2b6cb0", opacity: 0.7, rx: 4 });
+    H.text(160, 116, "27B FP16 ≈ 54G", { anchor: "middle", size: 14, fill: "#fff" });
+    H.line(45, 138, 275, 138, { stroke: "#c25b4e", sw: 2 });
+    H.text(160, 132, "24G 显存卡的红线 ↑", { anchor: "middle", size: 13, fill: "#c25b4e" });
+    H.rect(45, 148, 230 * 13.5 / 54, 30, { fill: H.c.accent, opacity: 0.85, rx: 4 });
+    H.text(45 + 230 * 13.5 / 54 / 2, 168, "INT4 ≈ 13.5G ✓", { anchor: "middle", size: 14, fill: "#fff" });
+    H.text(160, 216, "不量化：大多数消费级显卡", { anchor: "middle", size: 14, fill: H.c.dim });
+    H.text(160, 236, "连「装进去」这一步都过不去", { anchor: "middle", size: 14, fill: H.c.dim });
+    // ② 搬不动
+    H.rect(310, 50, 280, 200, { fill: H.c.soft, stroke: H.c.accent, rx: 10 });
+    H.text(450, 76, "② 搬不动", { anchor: "middle", size: 16, weight: "bold" });
+    H.text(450, 104, "Decode 每吐一个字，", { anchor: "middle", size: 14 });
+    H.text(450, 124, "都要把全部权重从显存读一遍", { anchor: "middle", size: 14 });
+    H.connect(360, 150, 540, 150, { stroke: H.c.accent, sw: 3 });
+    H.text(450, 140, "权重 ÷4 → 速度 ×4", { anchor: "middle", size: 15, fill: H.c.accent, weight: "bold" });
+    H.text(450, 174, "1TB/s ÷ 54G ≈ 18 tok/s", { anchor: "middle", size: 14, fill: H.c.dim });
+    H.text(450, 196, "1TB/s ÷ 13.5G ≈ 74 tok/s", { anchor: "middle", size: 14, fill: H.c.accent, weight: "bold" });
+    H.text(450, 226, "量化直接兑换成速度", { anchor: "middle", size: 14, fill: H.c.dim });
+    // ③ 损失小
+    H.rect(600, 50, 280, 200, { fill: H.c.soft, stroke: H.c.accent, rx: 10 });
+    H.text(740, 76, "③ 损失比想象小", { anchor: "middle", size: 16, weight: "bold" });
+    H.text(740, 104, "到 Q4 档为止，误差", { anchor: "middle", size: 14 });
+    H.text(740, 124, "只有权重的百分之一量级——", { anchor: "middle", size: 14 });
+    H.text(740, 144, "模型扛得住这种噪声", { anchor: "middle", size: 14, fill: H.c.accent, weight: "bold" });
+    // 小曲线
+    var d = "";
+    [3, 8, 22, 60].forEach(function (p, i) { d += (i ? " L" : "M") + (640 + i * 66) + "," + (228 - p); });
+    H.path(d, { stroke: "#c25b4e", sw: 2.5 });
+    H.text(640, 236, "Q8", { anchor: "middle", size: 12, fill: H.c.dim });
+    H.text(772, 236, "Q2", { anchor: "middle", size: 12, fill: "#c25b4e" });
+    H.text(660, 218, "越往右越陡", { size: 12, fill: H.c.dim });
+    H.text(450, 286, "所以量化是一场交易：用「对结果几乎无感的误差」换「显存装得下 + 速度跑得动」。", { anchor: "middle", size: 15 });
+    H.text(450, 314, "交易桌在 Q4 之前都很友善——之后汇率变差，见幻觉曲线。", { anchor: "middle", size: 15, fill: H.c.dim });
+  };
+
+  // ============ 28. GGUF 文件布局（架构图，v2/03）============
+  ILLS["gguf-file-layout"] = function (el) {
+    var H = svgHost(el, 900, 430);
+    H.text(450, 26, "打开一个 .gguf 文件：四段结构，从字节到权重", { anchor: "middle", size: 18, weight: "bold" });
+    // 头部
+    H.rect(20, 50, 860, 46, { fill: H.c.paper, stroke: H.c.accent, sw: 2 });
+    var hdr = [["GGUF", 60], ["版本 v3", 70], ["张量数 91", 110], ["元数据条数 34", 130], ["对齐值 32", 90]];
+    var hx = 30;
+    hdr.forEach(function (s) {
+      H.rect(hx, 58, s[1] - 10, 30, { fill: H.c.accent, opacity: 0.75, rx: 4 });
+      H.text(hx + (s[1] - 10) / 2, 78, s[0], { anchor: "middle", size: 12.5, fill: "#fff" });
+      hx += s[1];
+    });
+    H.text(20, 116, "① 文件头：magic「GGUF」+ 版本 + 数量声明——读文件的目录页", { size: 14.5, fill: H.c.dim });
+    // 元数据 KV
+    H.rect(20, 132, 560, 66, { fill: "#b8860b", opacity: 0.15, stroke: "#b8860b", rx: 8 });
+    H.text(34, 156, "② 元数据键值区：llm.architecture = qwen", { size: 14.5 });
+    H.text(34, 178, "llm.context_length = 262144 · tokenizer.ggml.tokens = [15万条] · general.file_type = 15（查表即 Q4_K_M）", { size: 13, fill: H.c.dim });
+    // 张量表
+    H.rect(600, 132, 280, 66, { fill: "#7c5cbf", opacity: 0.15, stroke: "#7c5cbf", rx: 8 });
+    H.text(614, 156, "③ 张量信息表：每层的", { size: 14.5 });
+    H.text(614, 178, "名字 / 维度 / 量化类型 / 偏移量", { size: 13, fill: H.c.dim });
+    // 对齐 + 数据区
+    H.rect(20, 214, 860, 92, { fill: H.c.soft, stroke: H.c.accent, rx: 8 });
+    H.text(34, 238, "④ 32 字节对齐填充", { size: 13, fill: H.c.dim });
+    var bx = 34;
+    var blocks = [["blk.0.attn_q", 96], ["blk.0.attn_k", 88], ["blk.0.ffn_down", 130], ["…", 40], ["blk.63.ffn_up", 120], ["output.weight", 150], ["token_embd", 130]];
+    blocks.forEach(function (b) {
+      H.rect(bx, 248, b[1] - 12, 40, { fill: H.c.accent, opacity: 0.55, rx: 5 });
+      H.text(bx + (b[1] - 12) / 2, 264, b[0], { anchor: "middle", size: 12, fill: "#fff" });
+      bx += b[1];
+    });
+    H.text(20, 330, "真正的大头：按量化类型分块码放的权重数据——一张图放大其中一块 ↓", { size: 14.5, fill: H.c.dim });
+    // 与 safetensors 对比
+    H.rect(20, 344, 420, 66, { fill: H.c.paper, stroke: H.c.line, rx: 8 });
+    H.text(34, 368, "GGUF（端侧派）：", { size: 14.5, weight: "bold" });
+    H.text(34, 392, "量化块 + tokenizer 全内嵌，单文件走天下", { size: 13, fill: H.c.dim });
+    H.rect(460, 344, 420, 66, { fill: H.c.paper, stroke: H.c.line, rx: 8 });
+    H.text(474, 368, "safetensors（服务端派）：", { size: 14.5, weight: "bold" });
+    H.text(474, 392, "JSON 头 + 原精度裸张量，vLLM 们吃这个", { size: 13, fill: H.c.dim });
+    H.text(450, 424, "llama.cpp 加载时会逐条打印张量名与类型——打印清单就是这张图的文字版", { anchor: "middle", size: 13.5, fill: H.c.dim });
+  };
+
+  // ============ 29. 超级块解剖（架构图，v2/03）============
+  ILLS["super-block-anatomy"] = function (el) {
+    var H = svgHost(el, 900, 460);
+    H.text(450, 26, "超级块：256 个权重的记账单位（Q4_K 的账本）", { anchor: "middle", size: 18, weight: "bold" });
+    // 大框：8 子块
+    H.rect(30, 50, 840, 96, { fill: H.c.paper, stroke: H.c.accent, rx: 8 });
+    H.text(48, 74, "超级块 = 256 个权重 = 8 子块 × 32", { size: 15, weight: "bold", fill: H.c.accent });
+    for (var i = 0; i < 8; i++) {
+      var x = 44 + i * 102;
+      H.rect(x, 86, 96, 48, { fill: H.c.soft, stroke: H.c.accent, rx: 6 });
+      H.text(x + 48, 104, "子块 " + (i + 1), { anchor: "middle", size: 12.5 });
+      H.text(x + 48, 122, "32 个权重", { anchor: "middle", size: 12, fill: H.c.dim });
+      if (i < 7) H.text(x + 100, 116, "+", { anchor: "middle", size: 16, fill: H.c.dim });
+    }
+    // 放大一个子块
+    H.text(30, 186, "放大子块：4bit 主数据 + 每子块一对 6bit 缩放/下限", { size: 16, weight: "bold" });
+    H.rect(30, 200, 560, 130, { fill: H.c.paper, stroke: H.c.line, rx: 8 });
+    var gx = 44;
+    for (var k = 0; k < 32; k++) {
+      H.rect(gx + (k % 16) * 34, 214 + Math.floor(k / 16) * 26, 30, 20, { fill: H.c.accent, opacity: 0.6, rx: 3 });
+      H.text(gx + (k % 16) * 34 + 15, 228 + Math.floor(k / 16) * 26, "4", { anchor: "middle", size: 12, fill: "#fff" });
+    }
+    H.text(44 + 16 * 34 + 8, 252, "← 32 个 4bit 量化值（128 bit = 16 字节）", { size: 13, fill: H.c.dim });
+    H.rect(610, 200, 130, 26, { fill: "#b8860b", opacity: 0.75, rx: 4 });
+    H.text(675, 218, "scale 6bit", { anchor: "middle", size: 13, fill: "#fff" });
+    H.rect(760, 200, 110, 26, { fill: "#7c5cbf", opacity: 0.75, rx: 4 });
+    H.text(815, 218, "min 6bit", { anchor: "middle", size: 13, fill: "#fff" });
+    H.text(610, 252, "每个子块自己的尺子（6bit）", { size: 13, fill: H.c.dim });
+    // 账本
+    H.rect(30, 344, 840, 60, { fill: H.c.soft, stroke: H.c.accent, rx: 8 });
+    H.text(450, 368, "子块账：32 × 4bit + 6bit + 6bit = 140 bit　→　8 子块再共享一对 FP16 超级缩放", { anchor: "middle", size: 15 });
+    H.text(450, 392, "总账：144 字节 / 256 权重 = 144 × 8 ÷ 256 = 4.5 bit/权重", { anchor: "middle", size: 15, weight: "bold", fill: H.c.accent });
+    H.text(450, 436, "这就是「Q4_K_M 名义 4bit、实测 4.8bit」之间的零头来源（另含 M 混合策略：一半注意力与 FFN 下投影张量改用 Q6_K）——也是文件里 general.file_type = 15 想告诉你的事", { anchor: "middle", size: 13.5, fill: H.c.dim });
+  };
+
+  // ============ 30. 量化甜点位（折线图，v2/06）============
+  ILLS["quant-sweet-spot"] = function (el) {
+    var H = svgHost(el, 900, 410);
+    var x0 = 100, y0 = 310, W = 700, Hh = 230;
+    H.connect(x0, y0, x0 + W + 20, y0, { stroke: H.c.dim });
+    H.connect(x0, y0, x0, 50, { stroke: H.c.dim });
+    var labels = ["Q2", "IQ3", "Q4_K_M", "Q5", "Q8", "FP16"];
+    labels.forEach(function (s, i) {
+      H.text(x0 + i * (W / 5), y0 + 24, s, { anchor: "middle", size: 15, fill: H.c.dim });
+    });
+    H.text(x0 + W / 2, y0 + 48, "位宽（从左到右越来越宽松）", { anchor: "middle", size: 15, fill: H.c.dim });
+    H.text(30, 60, "质量劣化 %", { size: 14, fill: "#c25b4e" });
+    // 质量劣化曲线：FP16≈0 → Q8 0.5 → Q5 2 → Q4 6 → IQ3 18 → Q2 60（指数尾巴）
+    var qual = [60, 18, 6, 2, 0.5, 0];
+    var d = "";
+    qual.forEach(function (p, i) {
+      var px = x0 + i * (W / 5), py = y0 - Math.min(1, p / 70) * Hh;
+      d += (i ? " L" : "M") + px + "," + py;
+      H.circle(px, py, 4.5, { fill: p > 10 ? "#c25b4e" : H.c.accent, stroke: "none" });
+    });
+    H.path(d, { stroke: "#c25b4e", sw: 3 });
+    H.text(x0 + 2 * (W / 5), y0 - 6 / 70 * Hh - 14, "劣化 <5%", { anchor: "middle", size: 13, fill: H.c.accent, weight: "bold" });
+    H.text(x0 + 1 * (W / 5), y0 - 18 / 70 * Hh - 14, "开始崩", { anchor: "middle", size: 13, fill: "#c25b4e", weight: "bold" });
+    // 边际收益曲线：每降 1bit 省的显存恒定（阶梯），但「每 GB 换回的质量」在 Q4 后跳水
+    H.text(20, 26, "甜点位 = 「再省一半显存」与「质量开始陡崩」的分界：Q4_K_M 右边几乎白拿，左边用质量换显存", { size: 15.5, fill: H.c.dim });
+    H.rect(x0 + 2 * (W / 5) - 55, y0 - 150, 110, 130, { stroke: H.c.accent, dash: "6 4", rx: 8, fill: H.c.accent, opacity: 0.001 });
+    H.text(x0 + 2 * (W / 5), y0 + 66, "↑ 甜点圈", { anchor: "middle", size: 13, fill: H.c.accent, weight: "bold" });
+    H.text(450, 356, "两个方向的账都成立：Q4→Q8，显存翻倍、质量只挽回最后一小截（收益递减）；Q4→Q2，显存再省一半、", { anchor: "middle", size: 14.5, fill: H.c.dim });
+    H.text(450, 380, "质量断崖（代价递增）。27B 装进 24G 卡的硬约束 + 这条曲线 = 社区把 Q4_K_M 当标配的原因。", { anchor: "middle", size: 14.5, fill: H.c.dim });
+    H.text(450, 402, "口径：曲线为社区困惑度实测的定性趋势（示意）；具体模型在 Q4_K_M 的劣化普遍在 1% 上下。", { anchor: "middle", size: 12.5, fill: H.c.dim });
+  };
+
   window.ILLS = ILLS;
   window.IllSys = { svgHost: svgHost, worker: worker, cssVar: cssVar };
 })();
