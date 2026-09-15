@@ -333,7 +333,7 @@
   ILLS["fp8-nvfp4-blocks"] = function (el) {
     var H = svgHost(el, 900, 470);
     var SIGN = "#c25b4e", EXP = "#2b6cb0", MAN = "#0f8a5f", U = 34;
-    H.text(20, 26, "FP8 的 8 位怎么分：E4M3 与 E5M2 是同一预算的两种花法", { size: 17, weight: "bold" });
+    H.text(20, 26, "FP8 的 8 位怎么分：E4M3 与 E5M2 是同一份 8 位预算的两种分法", { size: 17, weight: "bold" });
     function f8(y, s, e, m, label) {
       var cx = 40;
       [[s, SIGN], [e, EXP], [m, MAN]].forEach(function (g) {
@@ -501,7 +501,7 @@
       if (sub) H.text(x + w / 2, y + 43, sub, { anchor: "middle", size: 12, fill: H.c.dim });
     }
     step(90, 58, 180, "①", "tokenize 查词表", "「你好」→[108386,…]", "#2b6cb0");
-    step(300, 58, 150, "②", "排队调度", "等 GPU 空手", "#2b6cb0");
+    step(300, 58, 150, "②", "排队调度", "等 GPU 空出手", "#2b6cb0");
     step(480, 58, 170, "⑦", "detokenize 反查", "编号 → 文字流式给你", "#2b6cb0");
     step(680, 58, 180, "⑥", "采样：抽下一个词", "北京 70% → 抽中", "#2b6cb0");
     step(90, 185, 300, "③", "Prefill：整段并行过 64 层", "输入全部一次吞入，写 KV 缓存", "#0f8a5f");
@@ -658,7 +658,7 @@
     H.text(150, 322, "Riser / PLX switch 拆分卡", { anchor: "middle", size: 14, weight: "bold" });
     H.text(150, 342, "把 x16 拆成 x8+x8（bifurcation）", { anchor: "middle", size: 12.5, fill: H.c.dim });
     H.connect(180, 262, 150, 298);
-    H.text(450, 390, "TP 每层要做 all-reduce：decode 一次只传几 KB（延迟敏感），prefill 一传几 MB（带宽敏感）", { anchor: "middle", size: 15 });
+    H.text(450, 390, "TP 每层要做 all-reduce：decode 一次只传几 KB（延迟敏感），prefill 一次传几 MB（带宽敏感）", { anchor: "middle", size: 15 });
     H.text(450, 418, "矿卡飞线把 x16 锁成 1.0 x4（≈1GB/s）后单卡无感、双卡 TP 直接窒息——路多少钱才是关键", { anchor: "middle", size: 14, fill: "#c25b4e" });
   };
 

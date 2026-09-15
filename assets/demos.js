@@ -227,7 +227,7 @@
       { key: "ctxk", label: "上下文(K)", min: 1, max: 256, value: 256 },
       { key: "bytes", label: "精度字节", min: 1, max: 2, value: 2 },
     ], draw);
-    note(el, "KV 显存 = 全注意力层数 × KV头数 × 头维度 × 2(K和V) × token数 × 每元素字节。默认值即视频翻案后的真实账：16层×8头×128×2×256K×2B = 16G；把层数拖回 64（假装全是全注意力）就得 64G——这就是 v1/06 那次翻案。");
+    note(el, "KV 显存 = 全注意力层数 × KV头数 × 头维度 × 2(K和V) × token数 × 每元素字节。默认值即视频翻案后的真实账：16层×8头×128×2×256K×2B = 16G；把层数拖到 64（假装全是全注意力）就得 64G——这就是 v1/06 那次翻案。");
     var pos = 0;
     function draw() {
       var ctx = host.ctx, w = host.w, h = host.h;
@@ -460,7 +460,7 @@
         }
         x = kx; k++;
       }
-      inkFill(ctx, 20, 110, "同样一步 decode，逐发模式的 CPU-GPU 来回空隙累计可达数十个百分点的时间", host.css("--dim"));
+      inkFill(ctx, 20, 110, "同样一步 decode，逐个发射模式的 CPU-GPU 来回空隙累计可达数十个百分点的时间", host.css("--dim"));
       inkFill(ctx, 20, 130, "代价：CUDA Graph 需要预分配固定形状 → 额外显存（v4/02 三本账里的一项）", host.css("--dim"));
     });
   };
