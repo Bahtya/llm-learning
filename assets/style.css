@@ -143,3 +143,10 @@ a.bili { color: var(--accent); text-decoration: none; border-bottom: 1px dashed 
   border: 1px solid var(--line); border-radius: 12px;
 }
 .ill svg { width: 100%; height: auto; display: block; }
+
+/* mermaid 流程图容器 */
+pre.mermaid {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1em; overflow-x: auto; margin: 1.4em 0;
+  font-family: 'Noto Sans SC Book', system-ui, sans-serif;
+}

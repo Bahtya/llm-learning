@@ -125,6 +125,18 @@
           var fn = window.ILLS && window.ILLS[el.dataset.ill];
           if (fn) { try { fn(el); } catch (e) { el.innerHTML = '<p class="muted">插画加载失败：' + e.message + "</p>"; } }
         });
+        // mermaid 流程图渲染（主题随当前模式；失败保留原文）
+        if (window.mermaid && content.querySelector("pre.mermaid")) {
+          try {
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: document.documentElement.dataset.theme === "dark" ? "dark" : "default",
+              securityLevel: "loose",
+              fontFamily: "'Noto Sans SC Book', system-ui, sans-serif",
+            });
+            mermaid.run({ nodes: content.querySelectorAll("pre.mermaid") }).catch(function () { /* 语法错误时保留原文 */ });
+          } catch (e) { /* 保持原文 */ }
+        }
         renderPager(hit.book, hit.idx);
         renderToc();
         window.scrollTo(0, 0);
