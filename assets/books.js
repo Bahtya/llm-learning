@@ -1,66 +1,47 @@
-// 书籍清单：单一事实源。章节文件 = content/{vol}/{id}.md（规格见 notes/chapter-specs.md）
+// v2 书籍清单：项目型教材，5 部分 23 章 + 附录。章节文件 = content-v2/{part}/{id}.md
 const BOOKS = [
-  { vol: "v1", title: "卷一 · 大模型是怎么工作的", chapters: [
-    { id: "01", title: "token、词表与 BPE" },
-    { id: "02", title: "生成 = 预测下一个 token" },
-    { id: "03", title: "Transformer：按层堆叠的机器" },
-    { id: "04", title: "注意力：每个 token 都在看谁" },
-    { id: "05", title: "KV 缓存：用显存换算力" },
-    { id: "06", title: "注意力的三个变体：全注意力、线性、滑窗" },
-    { id: "07", title: "Prefill 与 Decode：吞字与吐字" },
-    { id: "08", title: "上下文窗口与思考预算" },
-    { id: "09", title: "MoE：总参数与激活参数" },
-    { id: "10", title: "模型生态与幻觉" },
+  { vol: "part1", title: "第一部分 · 跑起来：你的第一个推理服务", chapters: [
+    { id: "1-1", title: "从零到第一次调用：最小推理服务" },
+    { id: "1-2", title: "按下回车之后：一次请求的旅程" },
+    { id: "1-3", title: "为什么第二个字便宜：注意力与 KV 缓存" },
+    { id: "1-4", title: "聊着聊着就忘了：上下文窗口" },
+    { id: "1-5", title: "第一次选型：我的机器该跑哪个模型" },
   ]},
-  { vol: "v2", title: "卷二 · 数字怎么表示：精度与量化", chapters: [
-    { id: "01", title: "浮点数从零讲起" },
-    { id: "02", title: "FP8 与 NVFP4：更小的格子" },
-    { id: "03", title: "INT8/INT4 与 GGUF 档位" },
-    { id: "04", title: "权重与激活：W8A16 命名的世界" },
-    { id: "05", title: "量化粒度与异常值：Marlin 为什么快" },
-    { id: "06", title: "量化的代价：显存-速度-质量三角" },
+  { vol: "part2", title: "第二部分 · 算清楚：显存、位宽与量化", chapters: [
+    { id: "2-1", title: "显存三本账：装得下吗" },
+    { id: "2-2", title: "为什么要量化：三笔账" },
+    { id: "2-3", title: "位宽的世界：浮点、FP8 与整数格" },
+    { id: "2-4", title: "打开 GGUF：文件、超级块与档位" },
+    { id: "2-5", title: "量化的代价与甜点位" },
   ]},
-  { vol: "v3", title: "卷三 · 推理引擎在忙什么", chapters: [
-    { id: "01", title: "先会看表：tok/s、吞吐与单并发" },
-    { id: "02", title: "推理框架两流派" },
-    { id: "03", title: "vLLM 与 PagedAttention" },
-    { id: "04", title: "并发与批处理" },
-    { id: "05", title: "CUDA Graph：消掉发射开销" },
-    { id: "06", title: "投机解码：猜对了就赚到" },
-    { id: "07", title: "内核与算子：快从哪里来" },
-    { id: "08", title: "CPU 在干嘛：不止是个观众" },
-    { id: "09", title: "CUDA vs ROCm：软件生态的账" },
+  { vol: "part3", title: "第三部分 · 测明白：延迟、吞吐与瓶颈", chapters: [
+    { id: "3-1", title: "会看表：TTFT、TPOT 与吞吐" },
+    { id: "3-2", title: "并发与批处理：GPU 为什么不怕人多" },
+    { id: "3-3", title: "引擎在忙什么：调度、CUDA Graph 与内核" },
+    { id: "3-4", title: "找瓶颈：roofline 与对照实验" },
+    { id: "3-5", title: "投机解码与 MTP：不换卡的提速" },
   ]},
-  { vol: "v4", title: "卷四 · 显卡与硬件选型", chapters: [
-    { id: "01", title: "显存 vs 内存：模型为什么必须装进显存" },
-    { id: "02", title: "显存三本账：权重+KV+缓冲" },
-    { id: "03", title: "带宽决定 Decode、算力决定 Prefill" },
-    { id: "04", title: "架构代际：从 Pascal 到 Blackwell" },
-    { id: "05", title: "HBM vs GDDR：显存也分门派" },
-    { id: "06", title: "双卡怎么放模型：TP vs PP" },
-    { id: "07", title: "NVLink 与 PCIe 全家桶" },
-    { id: "08", title: "统一内存与 offloading" },
-    { id: "09", title: "平台与功耗：装机离不开的算术" },
-    { id: "10", title: "显卡市场生存指南" },
+  { vol: "part4", title: "第四部分 · 扩上去：多卡、并行与大模型", chapters: [
+    { id: "4-1", title: "双卡怎么放：TP vs PP" },
+    { id: "4-2", title: "卡间互联：NVLink、PCIe 与通信账" },
+    { id: "4-3", title: "大模型的另两条路：统一内存与 offload" },
+    { id: "4-4", title: "多用户上线：从玩具到服务" },
   ]},
-  { vol: "v5", title: "卷五 · 案例通读", chapters: [
-    { id: "01", title: "双 2080Ti 27B 100tok/s 全拆解" },
-    { id: "02", title: "KV 缓存 100G 算账翻案" },
-    { id: "03", title: "MTP/DFlash/DSpark 对比怎么读" },
-    { id: "04", title: "显卡天梯：百元神卡到智商税区" },
-    { id: "05", title: "176B MoE + U盘：offload 的极致案例" },
-    { id: "06", title: "统一内存跑大型 MoE：两万元怎么花" },
-    { id: "07", title: "紧急刹车：本地 vs API 的 TCO" },
-    { id: "08", title: "口径批判：\"调用量世界第一\"" },
+  { vol: "part5", title: "第五部分 · 选硬件：选型、成本与判断力", chapters: [
+    { id: "5-1", title: "三要素读穿一张卡" },
+    { id: "5-2", title: "显卡市场生存指南" },
+    { id: "5-3", title: "成本与决策：本地 vs API 的 TCO" },
+    { id: "5-4", title: "方法论内化：像 UP 主一样\"知道\"" },
   ]},
-  { vol: "v6", title: "卷六 · 方法论与术语表", chapters: [
-    { id: "01", title: "七个方法论模式" },
-    { id: "02", title: "术语速查表 A→Z" },
-    { id: "03", title: "案例出处对照：BV 号 → 视频" },
+  { vol: "appendix", title: "附录", chapters: [
+    { id: "A", title: "术语速查表（待 v2 重写）" },
+    { id: "B", title: "资料索引：视频清单与官方文档" },
+    { id: "C", title: "全书数字口径总表" },
+    { id: "D", title: "进阶篇入口" },
   ]},
 ];
 
-// BV 号 → 视频标题（案例块与出处表的可点击链接用；与 v6/03 对照表保持一致）
+// BV 号 → 视频标题（案例块与出处表的可点击链接用）
 const VIDEOS = {
   BV1nVVr6QEFq: { t: "立省5万！两张2080ti 27B稠密，单并发100tok/s" },
   BV1QC7Q61E3T: { t: "3500块！Qwen3.6 27B FP8权重 80tok/s" },
@@ -83,5 +64,5 @@ const VIDEOS = {
   BV1xQtf6SEHR: { t: "2张10系显卡+U盘，怒推176B Qwen3.8Flash" },
   BV1GtbL63Ekt: { t: "入坑本地AI之前的几个重要心法建议" },
   BV1i6Y86AEv3: { t: "本地AI智商税？3千-1万单卡方案我都不推荐" },
-  BV1otY26LE8w: { t: "统一内存为什么是本地部署200B级MoE模型的答案" }
+  BV1otY26LE8w: { t: "统一内存为什么是本地部署200B级MoE模型的答案" },
 };

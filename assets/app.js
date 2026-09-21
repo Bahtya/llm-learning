@@ -1,4 +1,4 @@
-// hash 路由 + 目录 + 进度 + 主题。路由格式：#/（首页）、#/v1/03（卷一章三）
+// hash 路由 + 目录 + 进度 + 主题。路由格式：#/（首页）、#/part1/1-1（第一部分第一章）
 (function () {
   var content = document.getElementById("content");
   var pager = document.getElementById("pager");
@@ -52,7 +52,7 @@
 
   // ---------- 路由 ----------
   function parseRoute() {
-    var m = location.hash.match(/^#\/(v\d+)\/(\d+)$/);
+    var m = location.hash.match(/^#\/(part[1-5]|appendix)\/([A-Za-z0-9\u4e00-\u9fff-]+)$/);
     return m ? { vol: m[1], id: m[2] } : null;
   }
 
@@ -65,14 +65,15 @@
 
   function renderHome() {
     crumb.textContent = "";
-    var html = "<h1>大模型入门</h1>" +
+    var html = "<h1>大模型推理服务器：从零搭建（v2）</h1>" +
       '<p class="muted">本书把 B 站 UP 主（视频作者）<strong>SPOTLITE</strong> 的本地大模型推理视频里出现的每一个概念从零讲懂。' +
       'SPOTLITE 是一位在本地硬件上跑大模型的开发者兼 UP 主；书中 <code>BV 号</code> 都可直接点击跳到 B 站原视频（案例块会附视频标题），' +
       '「案例」引用块摘自他的视频原话（常引用后文章节的概念，括号里的链接可先跳过）；书中型号名均取自视频口播口径，以模型卡为准。' +
-      '建议按卷顺序阅读；遇到忘了的词，回 <a href="#/v6/02">术语速查表</a> 查。</p>';
+      '全书围绕一个项目展开：部署模型 → 看懂请求链路 → 算清显存 → 测量延迟与吞吐 → 找出瓶颈 → 量化与并行 → 多用户 → 选型与成本。' +
+      '建议按顺序阅读；遇到忘了的词，回 <a href="#/appendix/B">资料索引</a> 与 <a href="#/appendix/C">数字口径总表</a> 查。</p>';
     BOOKS.forEach(function (b) {
       var done = b.chapters.filter(function (c) { return isRead(b.vol, c.id); }).length;
-      html += '<section class="home-vol"><h2><a href="#/' + b.vol + '/01">' + b.title + "</a></h2>" +
+      html += '<section class="home-vol"><h2><a href="#/' + b.vol + '/' + b.chapters[0].id + '">' + b.title + "</a></h2>" +
         '<div class="vol-progress">' + done + "/" + b.chapters.length + " 已读</div><ol>";
       b.chapters.forEach(function (c) {
         html += '<li class="' + (isRead(b.vol, c.id) ? "read" : "") + '"><a href="#/' + b.vol + "/" + c.id + '">' + c.title + "</a></li>";
@@ -112,7 +113,7 @@
     if (window.DemoSys) window.DemoSys.stopAll(); // 离开本章时停掉仍在跑的动画
     crumb.textContent = hit.book.title + " · " + hit.ch.title;
     content.innerHTML = '<p class="muted">加载中…</p>';
-    fetch("content/" + vol + "/" + id + ".md")
+    fetch("content-v2/" + vol + "/" + id + ".md")
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
       .then(function (text) {
         content.innerHTML = linkBvids("<h1>" + hit.ch.title + "</h1>" + mdToHtml(text));
