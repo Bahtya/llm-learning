@@ -112,7 +112,7 @@
     if (window.DemoSys) window.DemoSys.stopAll(); // 离开本章时停掉仍在跑的动画
     crumb.textContent = hit.book.title + " · " + hit.ch.title;
     content.innerHTML = '<p class="muted">加载中…</p>';
-    fetch("content/" + vol + "/" + id + ".md")
+    fetch("content/" + vol + "/" + id + ".md?v=" + (window.BUILD || "x"), { cache: "no-cache" })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
       .then(function (text) {
         content.innerHTML = linkBvids("<h1>" + hit.ch.title + "</h1>" + mdToHtml(text));
